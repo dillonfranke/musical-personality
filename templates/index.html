@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}
+    Home
+{% endblock %}
+{% block content %}
+    <h1>Welcome to Musical Personality!</h1>
+    <p>Click the button below to get started:</p>
+    <p>
+        <button onclick="window.location.href = '{{url}}'">Start</button>
+    </p>
+{% endblock %}

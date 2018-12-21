@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block head %}
+    <link rel="stylesheet" href="/static/style.css" />
+    <style>
+        body {
+            background-color: limegreen;
+        }
+    </style>
+    <title>{% block title %}{% endblock %} - Musical Personality</title>
+    {% endblock %}
+</head>
+<body>
+    <div id="content">{% block content %}{% endblock %}</div>
+    <div id="footer">
+        {% block footer %}
+        &copy; Copyright 2018 by <a href="http://dillonfranke.com">Dillon Franke</a>.
+        {% endblock %}
+    </div>
+</body>
+</html>
