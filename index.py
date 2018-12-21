@@ -25,6 +25,7 @@ def getFeatures(track_names, access_token):
 
     for entry in track_names:
         ids += entry[1]
+        ids += ","
     
     params = {'ids': ids}
     headers = {'Authorization': 'Bearer ' + str(access_token)}
@@ -34,6 +35,37 @@ def getFeatures(track_names, access_token):
     features = features.json()
 
     return features
+
+
+def getGenres(track_names, response):
+    full_data = []
+    response = response.json()
+
+    count = 0
+    for entry in response['artists']:
+        a = {'track_name': track_names[count][0], 'track_id': track_names[count][1], 'artist_name': entry.get('name'), 'genres': entry.get('genres')}
+        full_data.append(a)
+        count += 1
+
+    return full_data
+
+
+def getInfo(track_names, access_token):
+    ids = ""
+
+    for entry in track_names:
+        ids += entry[2].get('id')
+        ids += ","
+
+    ids = ids[:-1]
+    
+    params = {'ids': ids}
+    headers = {'Authorization': 'Bearer ' + str(access_token)}
+    url = 'https://api.spotify.com/v1/artists'
+
+    response = r.get(url, params=params, headers=headers)
+
+    return getGenres(track_names, response)
 
 
 @app.route('/callback')
@@ -54,7 +86,7 @@ def callback():
 
     ################### GET ACTUAL SONG DATA ###################
 
-    payload2 = {'limit': '50', 'offset': '0', 'time_range': 'long_term'}
+    payload2 = {'limit': '50', 'offset': '0', 'time_range': 'short_term'}
     headers2 = {'Authorization': 'Bearer ' + str(access_token)}
 
     tracks_base_url = 'https://api.spotify.com/v1/me/top/tracks'
@@ -65,11 +97,11 @@ def callback():
     track_names = []
 
     for track in song_data['items']:
-        track_names.append([track.get('name'), track.get('id')])
+        track_names.append([track.get('name'), track.get('id'), track.get('artists')[0]])
 
-    print(track_names)
+    full_data = getInfo(track_names, access_token)
+    
+    ### If you end up wanting to use features like danceability, etc.
+    #track_features = getFeatures(track_names, access_token)
 
-    track_features = getFeatures(track_names, access_token)
-        
-
-    return jsonify(track_features)
+    return jsonify(full_data)
