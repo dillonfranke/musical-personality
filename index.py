@@ -1,7 +1,9 @@
 from flask import Flask
 from flask import render_template
 from flask import request
+from flask import redirect
 from flask import jsonify
+import tensorflow as tf
 import json
 import requests as r
 import base64
@@ -68,6 +70,33 @@ def getInfo(track_names, access_token):
     return getGenres(track_names, response)
 
 
+def createGenreMap(full_data):
+    genreMap = dict()
+    for entry in full_data:
+        for genre in entry.get('genres'):
+            if (genreMap.get(genre) == None):
+                genreMap[genre] = 1
+            else:
+                genreMap[genre] += 1
+    
+    return genreMap
+
+
+@app.route('/submit', methods=['GET', 'POST'])
+def submit():
+    if (request.method == 'POST'):
+        one = request.form.get('one')
+
+    url = 'https://accounts.spotify.com/authorize'
+    url += '?client_id=fef838e843a9476fa2c5c874476662fc'
+    url += '&response_type=code'
+    url += '&redirect_uri=http://127.0.0.1:5000/callback'
+    url += '&scope=user-top-read'
+    #add state parameter here to prevent CSRF
+
+    return redirect(url)
+
+
 @app.route('/callback')
 def callback():
     ################### GET AUTHORIZATION TOKEN ###################
@@ -82,11 +111,9 @@ def callback():
     token_data = req.json()
     access_token = token_data.get('access_token')
 
-    print("ACCESS TOKEN: " + str(access_token))
-
     ################### GET ACTUAL SONG DATA ###################
 
-    payload2 = {'limit': '50', 'offset': '0', 'time_range': 'short_term'}
+    payload2 = {'limit': '100', 'offset': '0', 'time_range': 'short_term'}
     headers2 = {'Authorization': 'Bearer ' + str(access_token)}
 
     tracks_base_url = 'https://api.spotify.com/v1/me/top/tracks'
@@ -95,11 +122,19 @@ def callback():
     song_data = song_data.json()
 
     track_names = []
+    only_names = []
 
     for track in song_data['items']:
         track_names.append([track.get('name'), track.get('id'), track.get('artists')[0]])
+        only_names.append(track.get('name'))
+
+    return render_template('song_data.html', data=only_names)
 
     full_data = getInfo(track_names, access_token)
+
+    genre_map = createGenreMap(full_data)
+
+    print(genre_map)
     
     ### If you end up wanting to use features like danceability, etc.
     #track_features = getFeatures(track_names, access_token)
