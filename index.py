@@ -97,8 +97,26 @@ def submit():
     return redirect(url)
 
 
+def crossExamine(user1Data, user2Data):
+    ret = []
+    for item in user1Data:
+        if (item in user2Data):
+            ret.append(item)
+    
+    return render_template('song_data.html', data=ret)
+
+
+
 @app.route('/callback')
 def callback():
+
+    # user1Data = ["Don't Stop Me Now", "Hotel California", "Look Alive", "Hero", "You Shook Me All Night Long"]
+    # user2Data = ["Hotel California", "SICKO MODE", "Mo Bamba", "Praise The Lord", "Look Alive"]
+
+    # return crossExamine(user1Data, user2Data)
+
+
+
     ################### GET AUTHORIZATION TOKEN ###################
     auth_code = request.args.get('code')
 
@@ -113,18 +131,36 @@ def callback():
 
     ################### GET ACTUAL SONG DATA ###################
 
+    # Currently a hard cap of 50 top songs that you can fetch
     payload2 = {'limit': '100', 'offset': '0', 'time_range': 'short_term'}
     headers2 = {'Authorization': 'Bearer ' + str(access_token)}
 
     tracks_base_url = 'https://api.spotify.com/v1/me/top/tracks'
 
-    song_data = r.get(tracks_base_url, params=payload2, headers=headers2)
-    song_data = song_data.json()
+    song_data1 =  r.get(tracks_base_url, params=payload2, headers=headers2)
+    payload2 = {'limit': '100', 'offset': '0', 'time_range': 'medium_term'}
+
+    song_data2 = r.get(tracks_base_url, params=payload2, headers=headers2)
+    payload2 = {'limit': '100', 'offset': '0', 'time_range': 'long_term'}
+
+    song_data3 = r.get(tracks_base_url, params=payload2, headers=headers2)
+
+    song_data1 = song_data1.json()
+    song_data2 = song_data2.json()
+    song_data3 = song_data3.json()
 
     track_names = []
     only_names = []
 
-    for track in song_data['items']:
+    for track in song_data1['items']:
+        track_names.append([track.get('name'), track.get('id'), track.get('artists')[0]])
+        only_names.append(track.get('name'))
+
+    for track in song_data2['items']:
+        track_names.append([track.get('name'), track.get('id'), track.get('artists')[0]])
+        only_names.append(track.get('name'))
+
+    for track in song_data3['items']:
         track_names.append([track.get('name'), track.get('id'), track.get('artists')[0]])
         only_names.append(track.get('name'))
 
