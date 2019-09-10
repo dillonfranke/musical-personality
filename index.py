@@ -7,6 +7,10 @@ import tensorflow as tf
 import json
 import requests as r
 import base64
+import pdb
+
+user1Data = []
+user2Data = []
 
 app = Flask(__name__)
 
@@ -100,50 +104,40 @@ def submit():
 def crossExamine(user1Data, user2Data):
     ret = []
     for item in user1Data:
-        if (item in user2Data):
+        if (item in user2Data and item not in ret):
             ret.append(item)
-    
-    return render_template('song_data.html', data=ret)
+
+    return ret
 
 
-
-@app.route('/callback')
-def callback():
-
-    # user1Data = ["Don't Stop Me Now", "Hotel California", "Look Alive", "Hero", "You Shook Me All Night Long"]
-    # user2Data = ["Hotel California", "SICKO MODE", "Mo Bamba", "Praise The Lord", "Look Alive"]
-
-    # return crossExamine(user1Data, user2Data)
+def getAuthCode():
+    return request.args.get('code')
 
 
-
-    ################### GET AUTHORIZATION TOKEN ###################
-    auth_code = request.args.get('code')
-
-    payload1 = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': 'http://127.0.0.1:5000/callback', 'client_id': 'fef838e843a9476fa2c5c874476662fc', 'client_secret': 'ab99799453f94d5eba887d7c4a35189e'}
-
-    headers1 = {'content-type': 'application/x-www-form-urlencoded'}
-
-    req = r.post('https://accounts.spotify.com/api/token', params=payload1, headers=headers1)
+def getAccessToken(auth_code):
+    payload = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': 'http://127.0.0.1:5000/callback', 'client_id': 'fef838e843a9476fa2c5c874476662fc', 'client_secret': 'ab99799453f94d5eba887d7c4a35189e'}
+    headers = {'content-type': 'application/x-www-form-urlencoded'}
+    req = r.post('https://accounts.spotify.com/api/token', params=payload, headers=headers)
 
     token_data = req.json()
-    access_token = token_data.get('access_token')
+    return token_data.get('access_token')
 
-    ################### GET ACTUAL SONG DATA ###################
 
+# In the future return a tuple of song name and ID, since ID is better for searching
+def getUserData(access_token):
     # Currently a hard cap of 50 top songs that you can fetch
-    payload2 = {'limit': '100', 'offset': '0', 'time_range': 'short_term'}
-    headers2 = {'Authorization': 'Bearer ' + str(access_token)}
+    payload1 = {'limit': '100', 'offset': '0', 'time_range': 'short_term'}
+    headers1 = {'Authorization': 'Bearer ' + str(access_token)}
 
     tracks_base_url = 'https://api.spotify.com/v1/me/top/tracks'
 
-    song_data1 =  r.get(tracks_base_url, params=payload2, headers=headers2)
-    payload2 = {'limit': '100', 'offset': '0', 'time_range': 'medium_term'}
+    song_data1 =  r.get(tracks_base_url, params=payload1, headers=headers1)
+    payload1 = {'limit': '100', 'offset': '0', 'time_range': 'medium_term'}
 
-    song_data2 = r.get(tracks_base_url, params=payload2, headers=headers2)
-    payload2 = {'limit': '100', 'offset': '0', 'time_range': 'long_term'}
+    song_data2 = r.get(tracks_base_url, params=payload1, headers=headers1)
+    payload1 = {'limit': '100', 'offset': '0', 'time_range': 'long_term'}
 
-    song_data3 = r.get(tracks_base_url, params=payload2, headers=headers2)
+    song_data3 = r.get(tracks_base_url, params=payload1, headers=headers1)
 
     song_data1 = song_data1.json()
     song_data2 = song_data2.json()
@@ -164,15 +158,92 @@ def callback():
         track_names.append([track.get('name'), track.get('id'), track.get('artists')[0]])
         only_names.append(track.get('name'))
 
-    return render_template('song_data.html', data=only_names)
+    ################## GET PLAYLIST DATA ####################
+    # Get User ID
+    user = r.get("https://api.spotify.com/v1/me", headers=headers1)
+    user = user.json()
+    userID = user['id']
 
-    full_data = getInfo(track_names, access_token)
+    userPlaylists = r.get("https://api.spotify.com/v1/users/" + userID + "/playlists", headers=headers1)
 
-    genre_map = createGenreMap(full_data)
+    userPlaylists = userPlaylists.json()
 
-    print(genre_map)
+    # Still need to specify the offset to get the entire playlist
+    for playlistObj in userPlaylists['items']:
+        playlist = r.get(playlistObj['tracks']['href'], headers=headers1)
+        playlist = playlist.json()
+        for item in playlist['items']:
+            track_names.append([item.get('track').get('name'), item.get('track').get('id'), item.get('track').get('artists')[0]])
+            only_names.append(item.get('track').get('name'))
+
+    return only_names
+
+
+@app.route('/callback')
+def callback():
+    global user1Data, user2Data
+    # return crossExamine(user1Data, user2Data)
+
+    ################### GET AUTHORIZATION CODE ####################
+    auth_code = getAuthCode()
     
-    ### If you end up wanting to use features like danceability, etc.
-    #track_features = getFeatures(track_names, access_token)
+    ##################### GET ACCESS TOKEN ########################
+    access_token = getAccessToken(auth_code)
 
-    return jsonify(full_data)
+    ################### GET ACTUAL SONG DATA ######################
+    user1Data = getUserData(access_token)
+
+    return render_template('song_data.html', data=user1Data)
+
+    # url = 'https://accounts.spotify.com/authorize'
+    # url += '?client_id=fef838e843a9476fa2c5c874476662fc'
+    # url += '&response_type=code'
+    # url += '&redirect_uri=http://127.0.0.1:5000/callback2'
+    # url += '&show_dialog=true'
+    # url += '&scope=user-top-read'
+    # #add state parameter here to prevent CSRF
+
+    # return redirect(url)
+
+
+
+
+
+
+    # full_data = getInfo(track_names, access_token)
+
+    # genre_map = createGenreMap(full_data)
+
+    # print(genre_map)
+    
+    # ### If you end up wanting to use features like danceability, etc.
+    # #track_features = getFeatures(track_names, access_token)
+
+    # return jsonify(full_data)
+
+
+@app.route('/callback2')
+def callback2():
+    global user1Data, user2Data
+    # return crossExamine(user1Data, user2Data)
+
+    pdb.set_trace()
+
+    ################### GET AUTHORIZATION CODE ####################
+    auth_code = getAuthCode()
+    
+    ##################### GET ACCESS TOKEN ########################
+
+    payload = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': 'http://127.0.0.1:5000/callback2', 'client_id': 'fef838e843a9476fa2c5c874476662fc', 'client_secret': 'ab99799453f94d5eba887d7c4a35189e'}
+    headers = {'content-type': 'application/x-www-form-urlencoded'}
+    req = r.post('https://accounts.spotify.com/api/token', params=payload, headers=headers)
+
+    token_data = req.json()
+    access_token = token_data.get('access_token')
+
+    ################### GET ACTUAL SONG DATA ######################
+    user2Data = getUserData(access_token)
+
+    data = crossExamine(user1Data, user2Data)
+
+    return render_template('song_data.html', data=data)
