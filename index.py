@@ -4,18 +4,26 @@ from flask import render_template
 from flask import request
 from flask import redirect
 from flask import jsonify
+from flask import url_for
+from flask import g
 import json
 import requests as r
 import base64
 import pdb
+from . import auth
+from . import match
 
 app = Flask(__name__)
 app.config.from_envvar('SETTINGS', silent=True)
+app.register_blueprint(auth.bp)
+app.register_blueprint(match.bp)
 
 db.init_app(app)
 
 @app.route('/')
 def index():
+    if (g.user != None):
+        return redirect(url_for('match.index'))
     url = 'https://accounts.spotify.com/authorize'
     url += '?client_id=fef838e843a9476fa2c5c874476662fc'
     url += '&response_type=code'
