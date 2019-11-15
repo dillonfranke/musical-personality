@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}
+    Home
+{% endblock %}
+{% block content %}
+
+    {% if not g.user['spotify_id'] %}
+        <p>Please link your Spotify account</p>
+        <a href="{{ url_for('match.link') }}">Link Account</a>
+    {% else %}
+        <p>Spotify account successfully linked.</p>
+    {% endif %}
+
+{% endblock %}
