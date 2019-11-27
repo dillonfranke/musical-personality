@@ -1,5 +1,6 @@
 import functools
 import requests as r
+import json
 import pdb
 
 from flask import (
@@ -14,9 +15,19 @@ bp = Blueprint('match', __name__, url_prefix='/match')
 @bp.route('/')
 @login_required
 def index():
-    if (g.user['access_token']):
+    if (g.user['songs']):
+        return render_template('match/match.html', data=json.loads(g.user['songs']))
+    elif (g.user['access_token']):
         user1_data = getUserData(g.user['access_token'])
-        return render_template('match/match.html', data=user1_data)
+        db = get_db()
+        db.execute(
+            '''UPDATE user
+            SET songs = ?
+            WHERE id = ?;''',
+            (str(json.dumps(user1_data)), g.user['id'])
+        )
+        db.commit()
+        return render_template('match/match.html', data=json.loads(g.user['songs']))
     else:
         return render_template('match/match.html')
 

@@ -5,5 +5,6 @@ CREATE TABLE user (
   username TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
   spotify_id TEXT,
-  access_token TEXT
+  access_token TEXT,
+  songs TEXT
 );

@@ -24,14 +24,8 @@ db.init_app(app)
 def index():
     if (g.user != None):
         return redirect(url_for('match.index'))
-    url = 'https://accounts.spotify.com/authorize'
-    url += '?client_id=fef838e843a9476fa2c5c874476662fc'
-    url += '&response_type=code'
-    url += '&redirect_uri=http://127.0.0.1:5000/callback'
-    url += '&scope=user-top-read'
-    #add state parameter here to prevent CSRF
 
-    return render_template('index.html', url=url)
+    return render_template('index.html')
 
 
 def getFeatures(track_names, access_token):
