@@ -59,14 +59,78 @@ def crossExamine(user1Data, user2Data):
     return ret
 
 
+def addSongs(playlist, song_list):
+    endpoint_url = playlist['tracks']['href']
+
+    song_list = ['spotify:track:' + str(row[2]) for row in song_list]
+
+    print("Length of song list: " + str(len(song_list)))
+
+    while (1):
+        i = 100
+        done = False
+        if (len(song_list) < 100):
+            done = True
+            i = len(song_list)
+
+        track_params = json.dumps(
+            {
+                'uris': song_list[:i]
+            }
+        )
+
+        song_list = song_list[i:]
+
+        headers = {'Authorization': 'Bearer ' + g.user['access_token'], 'Content-Type': 'application/json'}
+
+        resp = r.post(url=endpoint_url, data=track_params, headers=headers)
+
+        if (resp.ok):
+            print("Cheers!" + str(i))
+
+        print(resp.content)
+
+        if (done): break
+
+
+
+def createPlaylist(song_list, user_to_compare):
+    endpoint_url = "https://api.spotify.com/v1/users/" + g.user['spotify_id'] + "/playlists"
+    playlist_name = g.user['username'] + " and " + user_to_compare + "'s Shared Songs"
+
+    # Create JSON object that will be added to the POST request body
+    playlist_params = json.dumps(
+        {
+            'name': playlist_name,
+            'description': 'An intersection of liked songs, made by Musicality!',
+            'public': True
+        }
+    )
+
+    headers = {'Authorization': 'Bearer ' + g.user['access_token'], 'Content-Type': 'application/json'}
+
+    print(playlist_params)
+    print(headers)
+
+    resp = r.post(url=endpoint_url, data=playlist_params, headers=headers)
+
+    print(resp.json())
+
+    if (resp.ok):
+        print("adding songs!!")
+        addSongs(resp.json(), song_list)
+
+    print(json.loads(resp.content))
+
+
 @bp.route('/compare', methods = ['GET'])
 @login_required
 def compare():
-    user_to_compare_id = str(request.query_string)
-    user_to_compare_id = user_to_compare_id[user_to_compare_id.find('=') + 1: len(user_to_compare_id) - 1]
-    print(user_to_compare_id)
+    user_to_compare = str(request.query_string)
+    user_to_compare = user_to_compare[user_to_compare.find('=') + 1: len(user_to_compare) - 1]
+    print(user_to_compare)
     db = get_db()
-    cur = db.execute("SELECT songs from user WHERE username = ?;", (user_to_compare_id,))
+    cur = db.execute("SELECT songs from user WHERE username = ?;", (user_to_compare,))
     rv = cur.fetchall()
     cur.close()
 
@@ -78,6 +142,8 @@ def compare():
 
     from operator import itemgetter
     ret = sorted(ret, key=itemgetter(1))
+
+    createPlaylist(ret, user_to_compare)
     
     return render_template('song_data.html', data=ret)
 
@@ -111,7 +177,7 @@ def link():
     url += '?client_id=fef838e843a9476fa2c5c874476662fc'
     url += '&response_type=code'
     url += '&redirect_uri=http://127.0.0.1:5000/match/callback'
-    url += quote('&scope=user-top-read user-library-read playlist-read-private playlist-read-collaborative', safe='&=-')
+    url += quote('&scope=user-top-read user-library-read playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private', safe='&=-')
     #add state parameter here to prevent CSRF
 
     print(url)
@@ -143,15 +209,15 @@ def getUserData(access_token):
     only_names = []
 
     for track in song_data1['items']:
-        track_names.append([track.get('name'), track.get('popularity')])
+        track_names.append([track.get('name'), track.get('popularity'), track.get('id')])
         only_names.append(track.get('name'))
 
     for track in song_data2['items']:
-        track_names.append([track.get('name'), track.get('popularity')])
+        track_names.append([track.get('name'), track.get('popularity'), track.get('id')])
         only_names.append(track.get('name'))
 
     for track in song_data3['items']:
-        track_names.append([track.get('name'), track.get('popularity')])
+        track_names.append([track.get('name'), track.get('popularity'), track.get('id')])
         only_names.append(track.get('name'))
 
     ################## GET PLAYLIST DATA ####################
@@ -179,9 +245,8 @@ def getUserData(access_token):
     liked_songs = r.get("https://api.spotify.com/v1/me/tracks", headers=headers1).json()
     print(liked_songs)
     while (1):
-        
         for item in liked_songs['items']:
-            track_names.append([item.get('track').get('name'), item.get('track').get('popularity')])
+            track_names.append([item.get('track').get('name'), item.get('track').get('popularity'), item.get('track').get('id')])
             only_names.append(item.get('track').get('name'))
 
         if (liked_songs['next'] == None): break
