@@ -10,6 +10,13 @@
     {% else %}
         <p>Spotify account successfully linked: {{ g.user['spotify_id'] }}</p>
         <p>Access Token: {{ g.user['access_token'] }}</p>
+        <p>Please select a user to compare songs against:</p>
+        <ol>
+            {% for user in users%}
+                <li><a href="/match/compare?user={{ user[0] }}">{{ user[0] }}</a></li>
+            {% endfor %}
+        </ol>
+        <p>Your Songs:</p>
         <ol>
             {% for item in data %}
                 <li>{{ item }}</li>

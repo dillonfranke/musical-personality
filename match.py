@@ -16,7 +16,11 @@ bp = Blueprint('match', __name__, url_prefix='/match')
 @login_required
 def index():
     if (g.user['songs']):
-        return render_template('match/match.html', data=json.loads(g.user['songs']))
+        cur = get_db().execute('SELECT username from user', ())
+        rv = cur.fetchall()
+        cur.close()
+        user_list = rv
+        return render_template('match/match.html', users=user_list, data=json.loads(g.user['songs']))
     elif (g.user['access_token']):
         user1_data = getUserData(g.user['access_token'])
         db = get_db()
@@ -27,9 +31,41 @@ def index():
             (str(json.dumps(user1_data)), g.user['id'])
         )
         db.commit()
-        return render_template('match/match.html', data=json.loads(g.user['songs']))
+        return redirect(url_for('match.index'))
     else:
         return render_template('match/match.html')
+
+
+def crossExamine(user1Data, user2Data):
+    ret = []
+    for item in user1Data:
+        if (item in user2Data and item not in ret):
+            ret.append(item)
+
+    return ret
+
+
+@bp.route('/compare', methods = ['GET'])
+@login_required
+def compare():
+    user_to_compare_id = str(request.query_string)
+    user_to_compare_id = user_to_compare_id[user_to_compare_id.find('=') + 1: len(user_to_compare_id) - 1]
+    print(user_to_compare_id)
+    db = get_db()
+    cur = db.execute("SELECT songs from user WHERE username = ?;", (user_to_compare_id,))
+    rv = cur.fetchall()
+    cur.close()
+
+    user_to_compare_list = json.loads(rv[0][0])
+
+    curr_user_list = json.loads(g.user['songs'])
+
+    print(user_to_compare_list)
+    #print(curr_user_list)
+
+    ret = crossExamine(user_to_compare_list, curr_user_list)
+    
+    return render_template('song_data.html', data=ret)
 
 
 def getSpotifyId(access_token):
