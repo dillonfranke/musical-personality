@@ -97,7 +97,7 @@ def submit():
     url += '?client_id=fef838e843a9476fa2c5c874476662fc'
     url += '&response_type=code'
     url += '&redirect_uri=http://127.0.0.1:5000/callback'
-    url += '&scope=user-top-read'
+    url += '&scope=user-top-read&user-library-read'
     #add state parameter here to prevent CSRF
 
     return redirect(url)
