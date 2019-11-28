@@ -10,6 +10,7 @@
     {% else %}
         <p>Spotify account successfully linked: {{ g.user['spotify_id'] }}</p>
         <p>Access Token: {{ g.user['access_token'] }}</p>
+        <p>Click here to refresh your songs: <a href="{{ url_for('match.clear') }}">Refresh</a></p>
         <p>Please select a user to compare songs against:</p>
         <ol>
             {% for user in users%}

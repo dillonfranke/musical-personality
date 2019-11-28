@@ -36,6 +36,20 @@ def index():
         return render_template('match/match.html')
 
 
+@bp.route('/clear')
+@login_required
+def clear():
+    db = get_db()
+    db.execute(
+        '''UPDATE user
+        SET songs = NULL
+        WHERE id = ?;''',
+        (g.user['id'],)
+    )
+    db.commit()
+    return redirect(url_for('match.index'))
+
+
 def crossExamine(user1Data, user2Data):
     ret = []
     for item in user1Data:
@@ -59,9 +73,6 @@ def compare():
     user_to_compare_list = json.loads(rv[0][0])
 
     curr_user_list = json.loads(g.user['songs'])
-
-    print(user_to_compare_list)
-    #print(curr_user_list)
 
     ret = crossExamine(user_to_compare_list, curr_user_list)
     
@@ -104,7 +115,7 @@ def link():
 # In the future return a tuple of song name and ID, since ID is better for searching
 def getUserData(access_token):
     # Currently a hard cap of 50 top songs that you can fetch
-    payload1 = {'limit': '100', 'offset': '0', 'time_range': 'short_term'}
+    payload1 = {'limit': '100', 'offset': '0', 'time_range': 'long_term'}
     headers1 = {'Authorization': 'Bearer ' + str(access_token)}
 
     tracks_base_url = 'https://api.spotify.com/v1/me/top/tracks'
@@ -113,7 +124,7 @@ def getUserData(access_token):
     payload1 = {'limit': '100', 'offset': '0', 'time_range': 'medium_term'}
 
     song_data2 = r.get(tracks_base_url, params=payload1, headers=headers1)
-    payload1 = {'limit': '100', 'offset': '0', 'time_range': 'long_term'}
+    payload1 = {'limit': '100', 'offset': '0', 'time_range': 'short_term'}
 
     song_data3 = r.get(tracks_base_url, params=payload1, headers=headers1)
 
@@ -148,11 +159,15 @@ def getUserData(access_token):
 
     # Still need to specify the offset to get the entire playlist
     for playlistObj in userPlaylists['items']:
-        playlist = r.get(playlistObj['tracks']['href'], headers=headers1)
-        playlist = playlist.json()
-        for item in playlist['items']:
-            track_names.append([item.get('track').get('name'), item.get('track').get('id'), item.get('track').get('artists')[0]])
-            only_names.append(item.get('track').get('name'))
+        i = 0
+        while (i < int(playlistObj['tracks']['total'])):
+            params1 = {'limit': '100', 'offset': str(i)}
+            playlist = r.get(playlistObj['tracks']['href'], params=params1, headers=headers1)
+            playlist = playlist.json()
+            for item in playlist['items']:
+                track_names.append([item.get('track').get('name'), item.get('track').get('id'), item.get('track').get('artists')[0]])
+                only_names.append(item.get('track').get('name'))
+            i += 100
 
     return only_names
 
