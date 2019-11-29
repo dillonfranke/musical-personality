@@ -7,8 +7,8 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 
-from musical_personality.auth import login_required
-from musical_personality.db import get_db
+from packages.auth import login_required
+from packages.db import get_db
 
 bp = Blueprint('match', __name__, url_prefix='/match')
 

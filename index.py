@@ -1,4 +1,4 @@
-from . import db
+from packages import db
 from flask import Flask
 from flask import render_template
 from flask import request
@@ -10,8 +10,8 @@ import json
 import requests as r
 import base64
 import pdb
-from . import auth
-from . import match
+from packages import auth
+from packages import match
 
 app = Flask(__name__)
 app.config.from_envvar('SETTINGS', silent=True)
