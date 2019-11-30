@@ -5,7 +5,8 @@
 {% block content %}
 
     {% if not g.user['spotify_id'] %}
-        <p>Please link your Spotify account</p>
+        <p>MusicMerge uses your unique Spotify listening data to curate the perfect playlist for you and your friends!</p>
+        <p>Please link your Spotify account to proceed:</p>
         <a href="{{ url_for('match.link') }}">Link Account</a>
     {% else %}
         <p>Spotify account successfully linked!</p>

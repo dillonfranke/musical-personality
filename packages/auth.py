@@ -32,7 +32,12 @@ def register():
                 (username, generate_password_hash(password))
             )
             db.commit()
-            return redirect(url_for('auth.login'))
+            session.clear()
+            user = db.execute(
+                'SELECT * FROM user WHERE username = ?', (username,)
+                ).fetchone()
+            session['user_id'] = user['id']
+            return redirect(url_for('match.index'))
 
         flash(error)
 
@@ -51,9 +56,9 @@ def login():
         ).fetchone()
 
         if user is None:
-            error = 'Incorrect username.'
+            error = 'Incorrect username or password.'
         elif not check_password_hash(user['password'], password):
-            error = 'Incorrect password.'
+            error = 'Incorrect username or password.'
 
         if error is None:
             session.clear()
