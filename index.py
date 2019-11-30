@@ -117,7 +117,7 @@ def getAuthCode():
 
 
 def getAccessToken(auth_code):
-    payload = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': 'http://127.0.0.1:5000/callback', 'client_id': 'fef838e843a9476fa2c5c874476662fc', 'client_secret': 'ab99799453f94d5eba887d7c4a35189e'}
+    payload = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': 'http://musicality.dillonfranke.com/callback', 'client_id': 'fef838e843a9476fa2c5c874476662fc', 'client_secret': 'ab99799453f94d5eba887d7c4a35189e'}
     headers = {'content-type': 'application/x-www-form-urlencoded'}
     req = r.post('https://accounts.spotify.com/api/token', params=payload, headers=headers)
 
