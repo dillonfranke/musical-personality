@@ -136,26 +136,6 @@ def compare():
     return render_template('song_data.html', data=ret)
 
 
-def getSpotifyId(access_token):
-    headers = {'Authorization': 'Bearer ' + str(access_token)}
-    user = r.get("https://api.spotify.com/v1/me", headers=headers)
-    user = user.json()
-    return user['id']
-
-
-def getAuthCode():
-    return request.args.get('code')
-
-
-def getAccessToken(auth_code):
-    payload = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': 'http://musicality.dillonfranke.com/callback', 'client_id': 'fef838e843a9476fa2c5c874476662fc', 'client_secret': 'ab99799453f94d5eba887d7c4a35189e'}
-    headers = {'content-type': 'application/x-www-form-urlencoded'}
-    req = r.post('https://accounts.spotify.com/api/token', params=payload, headers=headers)
-
-    token_data = req.json()
-    return token_data.get('access_token')
-
-
 @bp.route('/link')
 @login_required
 def link():
@@ -246,14 +226,41 @@ def getUserData(access_token):
     return track_names
 
 
+def getSpotifyId(access_token):
+    headers = {'Authorization': 'Bearer ' + str(access_token)}
+    user = r.get("https://api.spotify.com/v1/me", headers=headers)
+    print(user.content)
+    user = user.json()
+    return user['id']
+
+
+def getAuthCode():
+    return request.args.get('code')
+
+
+def getAccessToken(auth_code):
+    payload = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': 'http://musicality.dillonfranke.com/match/callback', 'client_id': 'fef838e843a9476fa2c5c874476662fc', 'client_secret': 'ab99799453f94d5eba887d7c4a35189e'}
+    headers = {'content-type': 'application/x-www-form-urlencoded'}
+    req = r.post('https://accounts.spotify.com/api/token', params=payload, headers=headers)
+
+    print("req data" + str(req.content))
+
+    token_data = req.json()
+    return token_data.get('access_token')  
+
+
 @bp.route('/callback')
 @login_required
 def callback():
     ################### GET AUTHORIZATION CODE ####################
     auth_code = getAuthCode()
+
+    print(auth_code)
     
     ##################### GET ACCESS TOKEN ########################
     access_token = getAccessToken(auth_code)
+
+    print(access_token)
 
     if not g.user['spotify_id']:
         db = get_db()
