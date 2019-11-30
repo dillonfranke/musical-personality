@@ -8,12 +8,12 @@
             background-color: limegreen;
         }
     </style>
-    <title>{% block title %}{% endblock %} - Musical Personality</title>
+    <title>{% block title %}{% endblock %} - MusicMerge</title>
     {% endblock %}
 </head>
 <body>
     <nav>
-        <h1>Musicality</h1>
+        <h1>MusicMerge</h1>
         <ul>
             {% if g.user %}
             <li><span>{{ g.user['username'] }}</span>
@@ -28,10 +28,10 @@
         <div class="flash">{{ message }}</div>
     {% endfor %}
     <div id="content">{% block content %}{% endblock %}</div>
-    <br><br>
+    <br>
     <div id="footer">
         {% block footer %}
-        &copy; Copyright 2018 by <a href="http://dillonfranke.com">Dillon Franke</a>.
+        &copy; Copyright 2019 by <a href="http://dillonfranke.com">Dillon Franke</a>.
         {% endblock %}
     </div>
 </body>

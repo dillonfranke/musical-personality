@@ -64,8 +64,6 @@ def addSongs(playlist, song_list):
 
     song_list = ['spotify:track:' + str(row[2]) for row in song_list]
 
-    print("Length of song list: " + str(len(song_list)))
-
     while (1):
         i = 100
         done = False
@@ -85,10 +83,8 @@ def addSongs(playlist, song_list):
 
         resp = r.post(url=endpoint_url, data=track_params, headers=headers)
 
-        if (resp.ok):
-            print("Cheers!" + str(i))
-
-        print(resp.content)
+        if (not resp.ok):
+            print("ERROR" + str(i))
 
         if (done): break
 
@@ -109,18 +105,10 @@ def createPlaylist(song_list, user_to_compare):
 
     headers = {'Authorization': 'Bearer ' + g.user['access_token'], 'Content-Type': 'application/json'}
 
-    print(playlist_params)
-    print(headers)
-
     resp = r.post(url=endpoint_url, data=playlist_params, headers=headers)
 
-    print(resp.json())
-
     if (resp.ok):
-        print("adding songs!!")
         addSongs(resp.json(), song_list)
-
-    print(json.loads(resp.content))
 
 
 @bp.route('/compare', methods = ['GET'])
@@ -128,7 +116,7 @@ def createPlaylist(song_list, user_to_compare):
 def compare():
     user_to_compare = str(request.query_string)
     user_to_compare = user_to_compare[user_to_compare.find('=') + 1: len(user_to_compare) - 1]
-    print(user_to_compare)
+
     db = get_db()
     cur = db.execute("SELECT songs from user WHERE username = ?;", (user_to_compare,))
     rv = cur.fetchall()
@@ -160,7 +148,7 @@ def getAuthCode():
 
 
 def getAccessToken(auth_code):
-    payload = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': 'http://musicality.dillonfranke.com/match/callback', 'client_id': 'fef838e843a9476fa2c5c874476662fc', 'client_secret': 'ab99799453f94d5eba887d7c4a35189e'}
+    payload = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': 'http://musicality.dillonfranke.com/callback', 'client_id': 'fef838e843a9476fa2c5c874476662fc', 'client_secret': 'ab99799453f94d5eba887d7c4a35189e'}
     headers = {'content-type': 'application/x-www-form-urlencoded'}
     req = r.post('https://accounts.spotify.com/api/token', params=payload, headers=headers)
 
@@ -179,8 +167,6 @@ def link():
     url += '&redirect_uri=http://musicality.dillonfranke.com/match/callback'
     url += quote('&scope=user-top-read user-library-read playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private', safe='&=-')
     #add state parameter here to prevent CSRF
-
-    print(url)
 
     return redirect(url)
 
@@ -222,28 +208,31 @@ def getUserData(access_token):
 
     ################## GET PLAYLIST DATA ####################
     # Get User ID
-    # user = r.get("https://api.spotify.com/v1/me", headers=headers1)
-    # user = user.json()
-    # userID = user['id']
+    user = r.get("https://api.spotify.com/v1/me", headers=headers1)
+    user = user.json()
+    userID = user['id']
 
-    # userPlaylists = r.get("https://api.spotify.com/v1/users/" + userID + "/playlists", headers=headers1)
+    userPlaylists = r.get("https://api.spotify.com/v1/users/" + userID + "/playlists", headers=headers1)
 
-    # userPlaylists = userPlaylists.json()
+    userPlaylists = userPlaylists.json()
 
-    # # Still need to specify the offset to get the entire playlist
-    # for playlistObj in userPlaylists['items']:
-    #     i = 0
-    #     while (i < int(playlistObj['tracks']['total'])):
-    #         params1 = {'limit': '100', 'offset': str(i)}
-    #         playlist = r.get(playlistObj['tracks']['href'], params=params1, headers=headers1)
-    #         playlist = playlist.json()
-    #         for item in playlist['items']:
-    #             track_names.append([item.get('track').get('name'), item.get('track').get('popularity')])
-    #             only_names.append(item.get('track').get('name'))
-    #         i += 100
+    for playlistObj in userPlaylists['items']:
+        i = 0
+        # We only want to get playlists that the user has created
+        if (playlistObj['owner']['id'] != userID): continue
+
+        # Loop through all the tracks of the playlist, (multiple requests w/ offset param req'd)
+        while (i < int(playlistObj['tracks']['total'])):
+            params1 = {'limit': '100', 'offset': str(i)}
+            playlist = r.get(playlistObj['tracks']['href'], params=params1, headers=headers1)
+            playlist = playlist.json()
+            for item in playlist['items']:
+                track_names.append([item.get('track').get('name'), item.get('track').get('popularity'), item.get('track').get('id')])
+                only_names.append(item.get('track').get('name'))
+            i += 100
 
     liked_songs = r.get("https://api.spotify.com/v1/me/tracks", headers=headers1).json()
-    print(liked_songs)
+
     while (1):
         for item in liked_songs['items']:
             track_names.append([item.get('track').get('name'), item.get('track').get('popularity'), item.get('track').get('id')])
@@ -252,8 +241,6 @@ def getUserData(access_token):
         if (liked_songs['next'] == None): break
 
         liked_songs = r.get(liked_songs['next'], headers=headers1).json()
-        print(liked_songs)
-
 
     return track_names
 
