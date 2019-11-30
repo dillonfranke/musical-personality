@@ -92,7 +92,7 @@ def addSongs(playlist, song_list):
 
 def createPlaylist(song_list, user_to_compare):
     endpoint_url = "https://api.spotify.com/v1/users/" + g.user['spotify_id'] + "/playlists"
-    playlist_name = g.user['username'] + " and " + user_to_compare + "'s Shared Songs"
+    playlist_name = "MusicMerge: " + g.user['username'] + " and " + user_to_compare + "'s Shared Songs"
 
     # Create JSON object that will be added to the POST request body
     playlist_params = json.dumps(
@@ -241,6 +241,7 @@ def getUserData(access_token):
         if (liked_songs['next'] == None): break
 
         liked_songs = r.get(liked_songs['next'], headers=headers1).json()
+
 
     return track_names
 
