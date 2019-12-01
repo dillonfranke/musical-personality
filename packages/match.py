@@ -140,7 +140,7 @@ def link():
     url = 'https://accounts.spotify.com/authorize'
     url += '?client_id=fef838e843a9476fa2c5c874476662fc'
     url += '&response_type=code'
-    url += '&redirect_uri=http://127.0.0.1:5000/match/callback'
+    url += '&redirect_uri=http://musicmerge.dillonfranke.com/match/callback'
     url += quote('&scope=user-top-read user-library-read playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private', safe='&=-')
     #add state parameter here to prevent CSRF
 
@@ -235,7 +235,7 @@ def getAuthCode():
 
 
 def getAccessToken(auth_code):
-    payload = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': 'http://127.0.0.1:5000/match/callback', 'client_id': 'fef838e843a9476fa2c5c874476662fc', 'client_secret': 'ab99799453f94d5eba887d7c4a35189e'}
+    payload = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': 'http://musicmerge.dillonfranke.com/match/callback', 'client_id': 'fef838e843a9476fa2c5c874476662fc', 'client_secret': 'ab99799453f94d5eba887d7c4a35189e'}
     headers = {'content-type': 'application/x-www-form-urlencoded'}
     req = r.post('https://accounts.spotify.com/api/token', params=payload, headers=headers)
 
