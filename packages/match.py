@@ -13,7 +13,6 @@ from packages.db import get_db
 bp = Blueprint('match', __name__, url_prefix='/match')
 
 @bp.route('/')
-@login_required
 def index():
     if (g.user['songs']):
         cur = get_db().execute('SELECT username from user', ())
@@ -37,7 +36,6 @@ def index():
 
 
 @bp.route('/clear')
-@login_required
 def clear():
     db = get_db()
     db.execute(
@@ -112,7 +110,6 @@ def createPlaylist(song_list, user_to_compare):
 
 
 @bp.route('/compare', methods = ['GET'])
-@login_required
 def compare():
     user_to_compare = str(request.query_string)
     user_to_compare = user_to_compare[user_to_compare.find('=') + 1: len(user_to_compare) - 1]
@@ -137,14 +134,13 @@ def compare():
 
 
 @bp.route('/link')
-@login_required
 def link():
     from requests.utils import quote
 
     url = 'https://accounts.spotify.com/authorize'
     url += '?client_id=fef838e843a9476fa2c5c874476662fc'
     url += '&response_type=code'
-    url += '&redirect_uri=http://musicality.dillonfranke.com/match/callback'
+    url += '&redirect_uri=http://127.0.0.1:5000/match/callback'
     url += quote('&scope=user-top-read user-library-read playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private', safe='&=-')
     #add state parameter here to prevent CSRF
 
@@ -239,7 +235,7 @@ def getAuthCode():
 
 
 def getAccessToken(auth_code):
-    payload = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': 'http://musicality.dillonfranke.com/match/callback', 'client_id': 'fef838e843a9476fa2c5c874476662fc', 'client_secret': 'ab99799453f94d5eba887d7c4a35189e'}
+    payload = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': 'http://127.0.0.1:5000/match/callback', 'client_id': 'fef838e843a9476fa2c5c874476662fc', 'client_secret': 'ab99799453f94d5eba887d7c4a35189e'}
     headers = {'content-type': 'application/x-www-form-urlencoded'}
     req = r.post('https://accounts.spotify.com/api/token', params=payload, headers=headers)
 
@@ -250,7 +246,6 @@ def getAccessToken(auth_code):
 
 
 @bp.route('/callback')
-@login_required
 def callback():
     ################### GET AUTHORIZATION CODE ####################
     auth_code = getAuthCode()
