@@ -13,7 +13,7 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @bp.route('/loading')
 def loading():
-    render_template('loading.html')
+    return render_template('auth/loading.html')
 
 
 @bp.route('/link')
