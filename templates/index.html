@@ -26,6 +26,7 @@
             -webkit-box-shadow: 1px 2px 10px rgba(0,0,0,.5);
             box-shadow: 1px 2px 10px rgba(0,0,0,.5);
             border-radius: 1px;
+            color: black;
         }
 
         div.middle-box img:hover {
@@ -40,6 +41,7 @@
         <h1>MusicMerge</h1>
         <p>Combine your music tastes with your friends to create the perfect playlist!</p>
         <a href="{{ url_for('auth.link') }}"><img src="/static/spotify-login.png" height="50px"></a>
+        <img src="/static/spotify-login-reverse.png" height="0px">
     </div>
    
 {% endblock %}
