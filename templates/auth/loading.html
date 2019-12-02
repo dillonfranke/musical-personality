@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}
+    Home
+{% endblock %}
+{% block content %}
+    <style>
+        body {
+            background-image: url('/static/background-bw.jpg');
+            background-size: cover;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.5em;
+        }
+
+        h1 {
+            font-size: 4em;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: bold;
+        }
+
+        div.middle-box {
+            background-color: rgba(255, 255, 255, 0.5);
+            background-repeat: no-repeat;
+            text-align: center;
+            padding: 30px;
+            -moz-box-shadow: 1px 2px 10px rgba(0,0,0,.5);
+            -webkit-box-shadow: 1px 2px 10px rgba(0,0,0,.5);
+            box-shadow: 1px 2px 10px rgba(0,0,0,.5);
+            border-radius: 1px;
+            color: black;
+        }
+
+    </style>
+    <script>
+        window.location.replace('/auth/login');
+    </script>
+    <div class='w3-display-middle middle-box'>
+        <h1>MusicMerge</h1>
+        <p>Combine music tastes with your friends to create the perfect playlist!</p>
+        <img src="/static/loading.gif" height="50px">
+    </div>
+   
+{% endblock %}
