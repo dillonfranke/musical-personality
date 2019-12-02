@@ -3,34 +3,27 @@
 <head>
     {% block head %}
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        body {
-            background-color: limegreen;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='w3.css') }}">
+    <link href="https://fonts.googleapis.com/css?family=Quicksand&display=swap" rel="stylesheet">
     <title>{% block title %}{% endblock %} - MusicMerge</title>
     {% endblock %}
 </head>
 <body>
     <nav>
-        <h1>MusicMerge</h1>
         <ul>
             {% if g.user %}
             <li><span>{{ g.user['display_name'] }}</span>
             <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
-            {% else %}
-            <li><a href="{{ url_for('auth.link') }}">Log In with Spotify</a>
             {% endif %}
         </ul>
     </nav>
     {% for message in get_flashed_messages() %}
         <div class="flash">{{ message }}</div>
     {% endfor %}
-    <div id="content">{% block content %}{% endblock %}</div>
+    <div id="content" class="w3-container">{% block content %}{% endblock %}</div>
     <br>
     <div id="footer">
         {% block footer %}
-        &copy; Copyright 2019 by <a href="http://dillonfranke.com">Dillon Franke</a>.
         {% endblock %}
     </div>
 </body>

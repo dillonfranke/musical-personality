@@ -3,8 +3,42 @@
     Home
 {% endblock %}
 {% block content %}
-    <p>Ever wanted to create a playlist with your friends where everyone likes <i>every</i> song?</p>
-    <p>Well now you can - with <strong>MusicMerge!</strong></p>
-    <p>Log in with your Spotify account to get started!</p>
+    <style>
+        body {
+            background-image: url('/static/background-bw.jpg');
+            background-size: cover;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.5em;
+        }
+
+        h1 {
+            font-size: 4em;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: bold;
+        }
+
+        div.middle-box {
+            background-color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+            padding: 30px;
+            -moz-box-shadow: 1px 2px 10px rgba(0,0,0,.5);
+            -webkit-box-shadow: 1px 2px 10px rgba(0,0,0,.5);
+            box-shadow: 1px 2px 10px rgba(0,0,0,.5);
+            border-radius: 1px;
+        }
+
+        div.middle-box img:hover {
+            content:url("/static/spotify-login-reverse.png");
+        }
+
+        div.middle-box img:active {
+            content:url("/static/spotify-login.png");
+        }
+    </style>
+    <div class='w3-display-middle middle-box'>
+        <h1>MusicMerge</h1>
+        <p>Combine your music tastes with your friends to create the perfect playlist!</p>
+        <a href="{{ url_for('auth.link') }}"><img src="/static/spotify-login.png" height="50px"></a>
+    </div>
    
 {% endblock %}

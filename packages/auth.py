@@ -23,7 +23,6 @@ def link():
     url += '&redirect_uri=http://musicmerge.dillonfranke.com/auth/login'
     url += quote('&scope=user-top-read user-library-read playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private', safe='&=-')
     #add state parameter here to prevent CSRF
-    print(url)
     return redirect(url)
 
 
@@ -66,8 +65,6 @@ def login():
 
     ################### GET AUTHORIZATION CODE ####################
     auth_code = getAuthCode()
-
-    print("Auth code: " + auth_code)
     
     ##################### GET ACCESS TOKEN ########################
     access_token = getAccessToken(auth_code)
@@ -75,10 +72,6 @@ def login():
     spotify_id = getSpotifyId(access_token)
 
     display_name = getDisplayName(spotify_id, access_token)
-
-    print("Access Token: " + access_token)
-    print("Spotify ID: " + spotify_id)
-    print("Display Name: " + display_name)
 
     db = get_db()
     user = db.execute(

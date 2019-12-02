@@ -173,7 +173,6 @@ def getUserData(access_token):
 
     for track in song_data1['items']:
         track_names.append([track.get('name'), track.get('popularity'), track.get('id'), track.get('artists')[0].get('name')])
-        print(track.get('artists')[0].get('name'))
         only_names.append(track.get('name'))
 
     for track in song_data2['items']:
@@ -205,8 +204,6 @@ def getUserData(access_token):
             playlist = r.get(playlistObj['tracks']['href'], params=params1, headers=headers1)
             playlist = playlist.json()
             for item in playlist['items']:
-                if (item.get('track').get('artists')[0].get('name') == 'Blanks'):
-                    print("In Playlist: " + str(playlistObj['name']))
                 track_names.append([item.get('track').get('name'), item.get('track').get('popularity'), item.get('track').get('id'), item.get('track').get('artists')[0].get('name')])
                 only_names.append(item.get('track').get('name'))
             i += 100
@@ -221,7 +218,5 @@ def getUserData(access_token):
         if (liked_songs['next'] == None): break
 
         liked_songs = r.get(liked_songs['next'], headers=headers1).json()
-
-    print(track_names)
 
     return track_names
