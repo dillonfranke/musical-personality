@@ -16,7 +16,7 @@ bp = Blueprint('match', __name__, url_prefix='/match')
 @login_required
 def index():
     if (g.user['songs']):
-        cur = get_db().execute('SELECT display_name from user', ())
+        cur = get_db().execute('SELECT * from user', ())
         rv = cur.fetchall()
         cur.close()
         user_list = rv
@@ -52,9 +52,16 @@ def clear():
 
 def crossExamine(user1_data, user2_data):
     ret = []
-    user2_data_ids = [row[2] for row in user2_data]
+    user2_data_artists = [row[3] for row in user2_data]
+    user2_data_names = [row[0] for row in user2_data]
     for item in user1_data:
-        if (item[2] in user2_data_ids and item not in ret):
+        if ((item[0] in user2_data_names and item[3] in user2_data_artists) and item not in ret):
+            ret.append(item)
+
+    user1_data_artists = [row[3] for row in user1_data]
+    user1_data_names = [row[0] for row in user1_data]
+    for item in user2_data:
+        if ((item[0] in user1_data_names and item[3] in user1_data_artists) and item not in ret):
             ret.append(item)
 
     return ret
@@ -93,13 +100,13 @@ def addSongs(playlist, song_list):
 
 def createPlaylist(song_list, user_to_compare):
     endpoint_url = "https://api.spotify.com/v1/users/" + g.user['spotify_id'] + "/playlists"
-    playlist_name = "MusicMerge: " + g.user['username'] + " and " + user_to_compare + "'s Shared Songs"
+    playlist_name = "MusicMerge: " + g.user['display_name'] + " and " + user_to_compare + "'s Shared Songs"
 
     # Create JSON object that will be added to the POST request body
     playlist_params = json.dumps(
         {
             'name': playlist_name,
-            'description': 'An intersection of liked songs, made by Musicality!',
+            'description': 'An intersection of liked songs, made by MusicMerge!',
             'public': True
         }
     )
@@ -115,11 +122,11 @@ def createPlaylist(song_list, user_to_compare):
 @bp.route('/compare', methods = ['GET'])
 @login_required
 def compare():
-    user_to_compare = str(request.query_string)
-    user_to_compare = user_to_compare[user_to_compare.find('=') + 1: len(user_to_compare) - 1]
+    id_to_compare = str(request.query_string)
+    id_to_compare = id_to_compare[id_to_compare.find('=') + 1: len(id_to_compare) - 1]
 
     db = get_db()
-    cur = db.execute("SELECT songs from user WHERE spotify_id = ?;", (user_to_compare,))
+    cur = db.execute("SELECT songs from user WHERE spotify_id = ?;", (id_to_compare,))
     rv = cur.fetchall()
     cur.close()
 
@@ -131,6 +138,10 @@ def compare():
 
     from operator import itemgetter
     ret = sorted(ret, key=itemgetter(1))
+
+    cur = db.execute("SELECT display_name from user WHERE spotify_id = ?;", (id_to_compare,))
+    user_to_compare = cur.fetchone()[0]
+    cur.close()
 
     createPlaylist(ret, user_to_compare)
     
@@ -161,15 +172,16 @@ def getUserData(access_token):
     only_names = []
 
     for track in song_data1['items']:
-        track_names.append([track.get('name'), track.get('popularity'), track.get('id')])
+        track_names.append([track.get('name'), track.get('popularity'), track.get('id'), track.get('artists')[0].get('name')])
+        print(track.get('artists')[0].get('name'))
         only_names.append(track.get('name'))
 
     for track in song_data2['items']:
-        track_names.append([track.get('name'), track.get('popularity'), track.get('id')])
+        track_names.append([track.get('name'), track.get('popularity'), track.get('id'), track.get('artists')[0].get('name')])
         only_names.append(track.get('name'))
 
     for track in song_data3['items']:
-        track_names.append([track.get('name'), track.get('popularity'), track.get('id')])
+        track_names.append([track.get('name'), track.get('popularity'), track.get('id'), track.get('artists')[0].get('name')])
         only_names.append(track.get('name'))
 
     ################## GET PLAYLIST DATA ####################
@@ -193,7 +205,9 @@ def getUserData(access_token):
             playlist = r.get(playlistObj['tracks']['href'], params=params1, headers=headers1)
             playlist = playlist.json()
             for item in playlist['items']:
-                track_names.append([item.get('track').get('name'), item.get('track').get('popularity'), item.get('track').get('id')])
+                if (item.get('track').get('artists')[0].get('name') == 'Blanks'):
+                    print("In Playlist: " + str(playlistObj['name']))
+                track_names.append([item.get('track').get('name'), item.get('track').get('popularity'), item.get('track').get('id'), item.get('track').get('artists')[0].get('name')])
                 only_names.append(item.get('track').get('name'))
             i += 100
 
@@ -201,12 +215,13 @@ def getUserData(access_token):
 
     while (1):
         for item in liked_songs['items']:
-            track_names.append([item.get('track').get('name'), item.get('track').get('popularity'), item.get('track').get('id')])
+            track_names.append([item.get('track').get('name'), item.get('track').get('popularity'), item.get('track').get('id'), item.get('track').get('artists')[0].get('name')])
             only_names.append(item.get('track').get('name'))
 
         if (liked_songs['next'] == None): break
 
         liked_songs = r.get(liked_songs['next'], headers=headers1).json()
 
+    print(track_names)
 
     return track_names
