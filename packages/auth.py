@@ -53,7 +53,7 @@ def getSpotifyId(access_token):
     user = user.json()
     return user['id']
 
-def getDisplayName(spotify_id):
+def getDisplayName(spotify_id, access_token):
     headers = {'Authorization': 'Bearer ' + str(access_token)}
     user = r.get("https://api.spotify.com/v1/users/" + str(spotify_id), headers=headers)
     user = user.json()
@@ -74,7 +74,7 @@ def login():
 
     spotify_id = getSpotifyId(access_token)
 
-    display_name = getDisplayName(spotify_id)
+    display_name = getDisplayName(spotify_id, access_token)
 
     print(access_token)
     print(spotify_id)
