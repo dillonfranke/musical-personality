@@ -29,18 +29,27 @@
             color: black;
         }
 
-        div.middle-box img:hover {
-            content:url("/static/spotify-login-reverse.png");
+        div.img-changer {
+            height: 50px;
+            width: 223px;
+            background-size: cover;
+            background-image: url('/static/spotify-login.png');
+            margin: 0 auto;
         }
 
-        div.middle-box img:active {
-            content:url("/static/spotify-login.png");
+        div.img-changer:hover {
+            background-image: url('/static/spotify-login-reverse.png');
         }
+
+        div.img-changer:active {
+            background-image: url('/static/spotify-login.png');
+        }
+
     </style>
     <div class='w3-display-middle middle-box'>
         <h1>MusicMerge</h1>
-        <p>Combine your music tastes with your friends to create the perfect playlist!</p>
-        <a href="{{ url_for('auth.link') }}"><img src="/static/spotify-login.png" height="50px"></a>
+        <p>Combine music tastes with your friends to create the perfect playlist!</p>
+        <a href="{{ url_for('auth.link') }}"><div class="img-changer"></div></a>
         <img src="/static/spotify-login-reverse.png" height="0px">
     </div>
    
