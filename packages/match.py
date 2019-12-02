@@ -16,7 +16,7 @@ bp = Blueprint('match', __name__, url_prefix='/match')
 @login_required
 def index():
     if (g.user['songs']):
-        cur = get_db().execute('SELECT username from user', ())
+        cur = get_db().execute('SELECT display_name from user', ())
         rv = cur.fetchall()
         cur.close()
         user_list = rv
@@ -119,7 +119,7 @@ def compare():
     user_to_compare = user_to_compare[user_to_compare.find('=') + 1: len(user_to_compare) - 1]
 
     db = get_db()
-    cur = db.execute("SELECT songs from user WHERE username = ?;", (user_to_compare,))
+    cur = db.execute("SELECT songs from user WHERE spotify_id = ?;", (user_to_compare,))
     rv = cur.fetchall()
     cur.close()
 

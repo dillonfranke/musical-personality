@@ -14,7 +14,7 @@
         <p>Please select a user to compare songs against:</p>
         <ol>
             {% for user in users%}
-                <li><a href="/match/compare?user={{ user[0] }}">{{ user[0] }}</a></li>
+                <li><a href="/match/compare?user={{ user[1] }}">{{ user[2] }}</a></li>
             {% endfor %}
         </ol>
         <p>Your Songs:</p>
