@@ -1,1 +1,1 @@
-web: flask translate compile; newrelic-admin run-program gunicorn index:app
+web: newrelic-admin run-program gunicorn -w 3 index:app
