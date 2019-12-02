@@ -29,14 +29,20 @@
             color: black;
         }
 
+        p.smaller {
+            font-size: 0.90;
+            font-weight: bold;
+        }
+
     </style>
     <script>
-        window.location.replace('/auth/login?code='{{ code }});
+        window.location.replace('/auth/login?code={{ code }}');
     </script>
     <div class='w3-display-middle middle-box'>
         <h1>MusicMerge</h1>
         <p>Combine music tastes with your friends to create the perfect playlist!</p>
         <img src="/static/loading.gif" height="50px">
+        <p class="smaller">Fetching your song data, please wait.</p>
     </div>
    
 {% endblock %}
