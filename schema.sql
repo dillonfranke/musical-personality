@@ -2,9 +2,9 @@ DROP TABLE IF EXISTS user;
 
 CREATE TABLE user (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL,
-  spotify_id TEXT,
+  spotify_id TEXT UNIQUE NOT NULL,
+  display_name TEXT NOT NULL,
+  auth_code TEXT,
   access_token TEXT,
   songs TEXT
 );

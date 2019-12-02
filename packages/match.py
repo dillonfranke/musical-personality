@@ -13,6 +13,7 @@ from packages.db import get_db
 bp = Blueprint('match', __name__, url_prefix='/match')
 
 @bp.route('/')
+@login_required
 def index():
     if (g.user['songs']):
         cur = get_db().execute('SELECT username from user', ())
@@ -32,10 +33,11 @@ def index():
         db.commit()
         return redirect(url_for('match.index'))
     else:
-        return render_template('match/match.html')
+        return render_template('index.html')
 
 
 @bp.route('/clear')
+@login_required
 def clear():
     db = get_db()
     db.execute(
@@ -48,10 +50,11 @@ def clear():
     return redirect(url_for('match.index'))
 
 
-def crossExamine(user1Data, user2Data):
+def crossExamine(user1_data, user2_data):
     ret = []
-    for item in user1Data:
-        if (item in user2Data and item not in ret):
+    user2_data_ids = [row[2] for row in user2_data]
+    for item in user1_data:
+        if (item[2] in user2_data_ids and item not in ret):
             ret.append(item)
 
     return ret
@@ -110,6 +113,7 @@ def createPlaylist(song_list, user_to_compare):
 
 
 @bp.route('/compare', methods = ['GET'])
+@login_required
 def compare():
     user_to_compare = str(request.query_string)
     user_to_compare = user_to_compare[user_to_compare.find('=') + 1: len(user_to_compare) - 1]
@@ -131,20 +135,6 @@ def compare():
     createPlaylist(ret, user_to_compare)
     
     return render_template('song_data.html', data=ret)
-
-
-@bp.route('/link')
-def link():
-    from requests.utils import quote
-
-    url = 'https://accounts.spotify.com/authorize'
-    url += '?client_id=fef838e843a9476fa2c5c874476662fc'
-    url += '&response_type=code'
-    url += '&redirect_uri=http://musicmerge.dillonfranke.com/match/callback'
-    url += quote('&scope=user-top-read user-library-read playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private', safe='&=-')
-    #add state parameter here to prevent CSRF
-
-    return redirect(url)
 
 
 # In the future return a tuple of song name and ID, since ID is better for searching
@@ -220,60 +210,3 @@ def getUserData(access_token):
 
 
     return track_names
-
-
-def getSpotifyId(access_token):
-    headers = {'Authorization': 'Bearer ' + str(access_token)}
-    user = r.get("https://api.spotify.com/v1/me", headers=headers)
-    print(user.content)
-    user = user.json()
-    return user['id']
-
-
-def getAuthCode():
-    return request.args.get('code')
-
-
-def getAccessToken(auth_code):
-    payload = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': 'http://musicmerge.dillonfranke.com/match/callback', 'client_id': 'fef838e843a9476fa2c5c874476662fc', 'client_secret': 'ab99799453f94d5eba887d7c4a35189e'}
-    headers = {'content-type': 'application/x-www-form-urlencoded'}
-    req = r.post('https://accounts.spotify.com/api/token', params=payload, headers=headers)
-
-    print("req data" + str(req.content))
-
-    token_data = req.json()
-    return token_data.get('access_token')  
-
-
-@bp.route('/callback')
-def callback():
-    ################### GET AUTHORIZATION CODE ####################
-    auth_code = getAuthCode()
-
-    print(auth_code)
-    
-    ##################### GET ACCESS TOKEN ########################
-    access_token = getAccessToken(auth_code)
-
-    print(access_token)
-
-    if not g.user['spotify_id']:
-        db = get_db()
-        db.execute(
-            '''UPDATE user
-            SET spotify_id = ?
-            WHERE id = ?;''',
-            (getSpotifyId(access_token), g.user['id'])
-        )
-        db.commit()
-
-    db = get_db()
-    db.execute(
-        '''UPDATE user
-        SET access_token = ?
-        WHERE id = ?;''',
-        (access_token, g.user['id'])
-    )
-    db.commit()
-
-    return redirect(url_for('match.index'))
