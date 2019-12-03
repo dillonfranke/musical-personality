@@ -38,7 +38,7 @@ def init_db():
 
 def dump_db():
     db = get_db()
-    f = open('/tmp/db_dump.sql', 'w')
+    f = open('tmp/db_dump.sql', 'w')
     for line in db.iterdump():
         f.write('%s\n' % line)
     f.close()
