@@ -18,6 +18,10 @@ app.config.from_envvar('SETTINGS', silent=True)
 app.register_blueprint(auth.bp)
 app.register_blueprint(match.bp)
 
+gunicorn_logger = logging.getLogger('gunicorn.error')
+app.logger.handlers = gunicorn_logger.handlers
+app.logger.setLevel(gunicorn_logger.level)
+
 db.init_app(app)
 
 @app.route('/')

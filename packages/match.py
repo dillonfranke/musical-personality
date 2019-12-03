@@ -111,6 +111,8 @@ def createPlaylist(song_list, user_to_compare):
         }
     )
 
+    print(playlist_params)
+
     headers = {'Authorization': 'Bearer ' + g.user['access_token'], 'Content-Type': 'application/json'}
 
     resp = r.post(url=endpoint_url, data=playlist_params, headers=headers)
