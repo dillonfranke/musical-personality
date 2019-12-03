@@ -1,6 +1,7 @@
 import sqlite3
 
 import click
+import os
 from flask import current_app, g
 from flask.cli import with_appcontext
 
@@ -38,7 +39,9 @@ def init_db():
 
 def dump_db():
     db = get_db()
-    f = open('tmp/db_dump.sql', 'w')
+    path = os.path.join(current_app.root_path, 'tmp/db_dump.sql')
+    print(path)
+    f = open(path, 'w')
     for line in db.iterdump():
         f.write('%s\n' % line)
     f.close()
