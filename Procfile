@@ -1,1 +1,1 @@
-web: newrelic-admin run-program gunicorn -w 3 index:app --log-level=debug
+web: newrelic-admin run-program gunicorn -w 2 index:app
