@@ -6,6 +6,7 @@ from flask import redirect
 from flask import jsonify
 from flask import url_for
 from flask import g
+import logging
 import json
 import requests as r
 import base64
