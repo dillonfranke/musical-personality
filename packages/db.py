@@ -36,6 +36,15 @@ def init_db():
         db.executescript(f.read().decode('utf8'))
 
 
+def dump_db():
+    db = get_db()
+    f = open('/tmp/db_dump.sql', 'w')
+    for line in db.iterdump():
+        f.write('%s\n' % line)
+    f.close()
+
+
+
 @click.command('init-db')
 @with_appcontext
 def init_db_command():
