@@ -100,13 +100,13 @@ def addSongs(playlist, song_list):
 
 def createPlaylist(song_list, user_to_compare):
     endpoint_url = "https://api.spotify.com/v1/users/" + g.user['spotify_id'] + "/playlists"
-    playlist_name = "MusicMerge: " + g.user['display_name'] + " and " + user_to_compare + "'s Shared Songs"
+    playlist_name = "musicmerge.dillonfranke.com: " + user_to_compare + " and " + g.user['display_name'] + "'s Perfect Playlist"
 
     # Create JSON object that will be added to the POST request body
     playlist_params = json.dumps(
         {
             'name': playlist_name,
-            'description': 'An intersection of liked songs, made by MusicMerge!',
+            'description': 'An intersection of liked songs, made by MusicMerge! Check out http://musicmerge.dillonfranke.com to create the perfect playlist of your own!',
             'public': True
         }
     )
