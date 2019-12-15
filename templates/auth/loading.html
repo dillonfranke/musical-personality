@@ -1,8 +1,12 @@
-{% extends "base.html" %}
-{% block title %}
-    Home
-{% endblock %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='w3.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css?family=Quicksand&display=swap" rel="stylesheet">
+    <title>{% block title %}{% endblock %}MusicMerge - Home</title>
+</head>
+<body>
     <style>
         body {
             background-image: url('/static/background-bw.jpg');
@@ -29,9 +33,20 @@
             color: black;
         }
 
-        p.smaller {
-            font-size: 0.80em;
-            font-weight: bold;
+        div.img-changer {
+            height: 50px;
+            width: 223px;
+            background-size: cover;
+            background-image: url('/static/spotify-login.png');
+            margin: 0 auto;
+        }
+
+        div.img-changer:hover {
+            background-image: url('/static/spotify-login-reverse.png');
+        }
+
+        div.img-changer:active {
+            background-image: url('/static/spotify-login.png');
         }
 
     </style>
@@ -47,4 +62,5 @@
         window.location.replace('/auth/login?code={{ code }}');
     </script>
    
-{% endblock %}
+</body>
+</html>

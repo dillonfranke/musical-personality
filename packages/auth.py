@@ -23,8 +23,8 @@ def link():
     url = 'https://accounts.spotify.com/authorize'
     url += '?client_id=fef838e843a9476fa2c5c874476662fc'
     url += '&response_type=code'
-    # url += '&redirect_uri=http://127.0.0.1:5000/auth/loading'
-    url += '&redirect_uri=http://musicmerge.dillonfranke.com/auth/loading'
+    url += '&redirect_uri=http://127.0.0.1:5000/auth/loading'
+    # url += '&redirect_uri=http://musicmerge.dillonfranke.com/auth/loading'
     url += quote('&scope=user-top-read user-library-read playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private', safe='&=-')
     #add state parameter here to prevent CSRF
     return redirect(url)
@@ -32,19 +32,22 @@ def link():
 
 def getAuthCode():
     # TODO: Add error-handling here
+    print("Auth code: " + request.args.get('code'))
     return request.args.get('code')
 
 def getAccessToken(auth_code):
     payload = {
         'grant_type': 'authorization_code',
         'code': auth_code,
-        # 'redirect_uri': 'http://127.0.0.1:5000/auth/loading',
-        'redirect_uri': 'http://musicmerge.dillonfranke.com/auth/loading',
+        'redirect_uri': 'http://127.0.0.1:5000/auth/loading',
+        # 'redirect_uri': 'http://musicmerge.dillonfranke.com/auth/loading',
         'client_id': 'fef838e843a9476fa2c5c874476662fc',
         'client_secret': 'ab99799453f94d5eba887d7c4a35189e'
     }
     headers = {'content-type': 'application/x-www-form-urlencoded'}
     resp = r.post('https://accounts.spotify.com/api/token', params=payload, headers=headers)
+
+    print(resp)
 
     print(resp.content)
 
@@ -55,6 +58,7 @@ def getAccessToken(auth_code):
 def getSpotifyId(access_token):
     headers = {'Authorization': 'Bearer ' + str(access_token)}
     user = r.get("https://api.spotify.com/v1/me", headers=headers)
+    print(user)
     user = user.json()
     return user['id']
 
@@ -104,10 +108,9 @@ def login():
         db = get_db()
         db.execute(
             '''UPDATE user
-            SET access_token = ?
-            SET auth_code = ?
+            SET access_token = ?, auth_code = ?
             WHERE id = ?;''',
-            (access_token, auth_code, g.user['id'],)
+            (access_token, auth_code, g.user['id'])
         )
         db.commit()
 

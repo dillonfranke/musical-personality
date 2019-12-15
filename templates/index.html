@@ -1,8 +1,12 @@
-{% extends "base.html" %}
-{% block title %}
-    Home
-{% endblock %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='w3.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css?family=Quicksand&display=swap" rel="stylesheet">
+    <title>{% block title %}{% endblock %}MusicMerge - Home</title>
+</head>
+<body>
     <style>
         body {
             background-image: url('/static/background-bw.jpg');
@@ -53,4 +57,5 @@
         <img src="/static/spotify-login-reverse.png" height="0px">
     </div>
    
-{% endblock %}
+</body>
+</html>

@@ -46,7 +46,7 @@ def clear():
         (g.user['id'],)
     )
     db.commit()
-    return redirect(url_for('auth.login'))
+    return redirect(url_for('auth.link'))
 
 
 def crossExamine(user1_data, user2_data):
