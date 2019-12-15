@@ -101,6 +101,15 @@ def login():
         # User already exists, fetch them
         session.clear()
         session['user_id'] = user['id']
+        db = get_db()
+        db.execute(
+            '''UPDATE user
+            SET access_token = ?
+            SET auth_code = ?
+            WHERE id = ?;''',
+            (access_token, auth_code, g.user['id'],)
+        )
+        db.commit()
 
     return redirect(url_for('match.index'))
 
