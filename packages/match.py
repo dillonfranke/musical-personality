@@ -37,7 +37,6 @@ def index():
 
 
 @bp.route('/clear')
-@login_required
 def clear():
     db = get_db()
     db.execute(
@@ -47,7 +46,7 @@ def clear():
         (g.user['id'],)
     )
     db.commit()
-    return redirect(url_for('match.index'))
+    return redirect(url_for('auth.login'))
 
 
 def crossExamine(user1_data, user2_data):
