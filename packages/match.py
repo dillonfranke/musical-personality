@@ -1,7 +1,6 @@
 import functools
 import requests as r
 import json
-import pdb
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
@@ -20,6 +19,7 @@ def index():
         rv = cur.fetchall()
         cur.close()
         user_list = rv
+        user_list.remove(g.user)
         return render_template('match/match.html', users=user_list, data=json.loads(g.user['songs']))
     elif (g.user['access_token']):
         user1_data = getUserData(g.user['access_token'])
@@ -100,9 +100,24 @@ def addSongs(playlist, song_list):
 
 
 
-def createPlaylist(song_list, user_to_compare):
+def createPlaylist(song_list, user_list):
     endpoint_url = "https://api.spotify.com/v1/users/" + g.user['spotify_id'] + "/playlists"
-    playlist_name = "musicmerge.dillonfranke.com: " + user_to_compare + " and " + g.user['display_name'] + "'s Perfect Playlist"
+    playlist_name = "🎶🔀: "
+
+    db = get_db()
+
+    for spotify_id in user_list:
+        cur = db.execute("SELECT display_name from user WHERE spotify_id = ?;", (spotify_id,))
+        display_name = cur.fetchone()[0]
+        cur.close()
+        playlist_name += display_name
+
+        if (len(user_list) != 1):
+            playlist_name += ","
+            
+        playlist_name += " "
+
+    playlist_name += "and " + g.user['display_name'] + "'s Perfect Playlist"
 
     # Create JSON object that will be added to the POST request body
     playlist_params = json.dumps(
@@ -113,8 +128,6 @@ def createPlaylist(song_list, user_to_compare):
         }
     )
 
-    print(playlist_params)
-
     headers = {'Authorization': 'Bearer ' + g.user['access_token'], 'Content-Type': 'application/json'}
 
     resp = r.post(url=endpoint_url, data=playlist_params, headers=headers)
@@ -123,31 +136,31 @@ def createPlaylist(song_list, user_to_compare):
         addSongs(resp.json(), song_list)
 
 
-@bp.route('/compare', methods = ['GET'])
+@bp.route('/compare', methods = ['POST'])
 @login_required
 def compare():
-    id_to_compare = str(request.query_string)
-    id_to_compare = id_to_compare[id_to_compare.find('=') + 1: len(id_to_compare) - 1]
+    user_list = request.form.getlist('user')
+    #user_list.insert(0, g.user['spotify_id']) # append to front of list
 
-    db = get_db()
-    cur = db.execute("SELECT songs from user WHERE spotify_id = ?;", (id_to_compare,))
-    rv = cur.fetchall()
-    cur.close()
+    ret = json.loads(g.user['songs']) # start with current user songs
 
-    user_to_compare_list = json.loads(rv[0][0])
+    for user in user_list:
 
-    curr_user_list = json.loads(g.user['songs'])
+        print(user)
 
-    ret = crossExamine(user_to_compare_list, curr_user_list)
+        db = get_db()
+        cur = db.execute("SELECT songs from user WHERE spotify_id = ?;", (user,))
+        rv = cur.fetchall()
+        cur.close()
+
+        user_to_compare_list = json.loads(rv[0][0])
+
+        ret = crossExamine(user_to_compare_list, ret)
 
     from operator import itemgetter
     ret = sorted(ret, key=itemgetter(1))
 
-    cur = db.execute("SELECT display_name from user WHERE spotify_id = ?;", (id_to_compare,))
-    user_to_compare = cur.fetchone()[0]
-    cur.close()
-
-    createPlaylist(ret, user_to_compare)
+    createPlaylist(ret, user_list)
     
     return render_template('song_data.html', data=ret)
 
