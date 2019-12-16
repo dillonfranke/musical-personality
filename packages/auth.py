@@ -23,33 +23,27 @@ def link():
     url = 'https://accounts.spotify.com/authorize'
     url += '?client_id=fef838e843a9476fa2c5c874476662fc'
     url += '&response_type=code'
-    url += '&redirect_uri=http://127.0.0.1:5000/auth/loading'
-    # url += '&redirect_uri=http://musicmerge.dillonfranke.com/auth/loading'
+    # url += '&redirect_uri=http://127.0.0.1:5000/auth/loading'
+    url += '&redirect_uri=http://musicmerge.dillonfranke.com/auth/loading'
     url += quote('&scope=user-top-read user-library-read playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private', safe='&=-')
     #add state parameter here to prevent CSRF
     return redirect(url)
 
 
 def getAuthCode():
-    # TODO: Add error-handling here
-    print("Auth code: " + request.args.get('code'))
     return request.args.get('code')
 
 def getAccessToken(auth_code):
     payload = {
         'grant_type': 'authorization_code',
         'code': auth_code,
-        'redirect_uri': 'http://127.0.0.1:5000/auth/loading',
-        # 'redirect_uri': 'http://musicmerge.dillonfranke.com/auth/loading',
+        # 'redirect_uri': 'http://127.0.0.1:5000/auth/loading',
+        'redirect_uri': 'http://musicmerge.dillonfranke.com/auth/loading',
         'client_id': 'fef838e843a9476fa2c5c874476662fc',
         'client_secret': 'ab99799453f94d5eba887d7c4a35189e'
     }
     headers = {'content-type': 'application/x-www-form-urlencoded'}
     resp = r.post('https://accounts.spotify.com/api/token', params=payload, headers=headers)
-
-    print(resp)
-
-    print(resp.content)
 
     token_data = resp.json()
 
@@ -58,7 +52,6 @@ def getAccessToken(auth_code):
 def getSpotifyId(access_token):
     headers = {'Authorization': 'Bearer ' + str(access_token)}
     user = r.get("https://api.spotify.com/v1/me", headers=headers)
-    print(user)
     user = user.json()
     return user['id']
 
@@ -66,7 +59,6 @@ def getDisplayName(spotify_id, access_token):
     headers = {'Authorization': 'Bearer ' + str(access_token)}
     user = r.get("https://api.spotify.com/v1/users/" + str(spotify_id), headers=headers)
     user = user.json()
-    # TODO: check if no display name is set
     return user['display_name']
 
 
@@ -74,14 +66,36 @@ def getDisplayName(spotify_id, access_token):
 def login():
 
     ################### GET AUTHORIZATION CODE ####################
-    auth_code = getAuthCode()
+    try:
+        auth_code = getAuthCode()
+    except KeyError:
+        print("Error retrieving authorization code.")
+        return redirect(url_for('match.clear'))
+    ###############################################################
     
     ##################### GET ACCESS TOKEN ########################
-    access_token = getAccessToken(auth_code)
+    try:
+        access_token = getAccessToken(auth_code)
+    except KeyError:
+        print("Error retrieving access token.")
+        return redirect(url_for('match.clear'))
+    ###############################################################
 
-    spotify_id = getSpotifyId(access_token)
+    ###################### GET SPOTIFY ID #########################  
+    try:
+        spotify_id = getSpotifyId(access_token)
+    except KeyError:
+        print("Error retrieving Spotify ID.")
+        return redirect(url_for('match.clear'))
+    ###############################################################
 
-    display_name = getDisplayName(spotify_id, access_token)
+    ###################### GET DISPLAY NAME########################
+    try:
+        display_name = getDisplayName(spotify_id, access_token)
+    except KeyError:
+        print("Error retrieving display name.")
+        return redirect(url_for('match.clear'))
+    ###############################################################
 
     db = get_db()
     user = db.execute(
@@ -110,7 +124,7 @@ def login():
             '''UPDATE user
             SET access_token = ?, auth_code = ?
             WHERE id = ?;''',
-            (access_token, auth_code, g.user['id'])
+            (access_token, auth_code, user['id'])
         )
         db.commit()
 

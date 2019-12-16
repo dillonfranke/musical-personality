@@ -38,15 +38,18 @@ def index():
 
 @bp.route('/clear')
 def clear():
-    db = get_db()
-    db.execute(
-        '''UPDATE user
-        SET songs = NULL
-        WHERE id = ?;''',
-        (g.user['id'],)
-    )
-    db.commit()
-    return redirect(url_for('auth.link'))
+    if g.user:
+        db = get_db()
+        db.execute(
+            '''UPDATE user
+            SET songs = NULL
+            WHERE id = ?;''',
+            (g.user['id'],)
+        )
+        db.commit()
+        return redirect(url_for('auth.link'))
+    else:
+        return redirect(url_for('index.html'))
 
 
 def crossExamine(user1_data, user2_data):
